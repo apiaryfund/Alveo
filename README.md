@@ -1,6 +1,6 @@
 Alveo
 =====
-Alveo is a real time trading application for charting and performing technical analysis of the markets.
+Alveo is a real-time trading application for charting and performing technical analysis of the markets.
 
 To download the platform:
 https://apiaryfund.com/software
