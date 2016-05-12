@@ -20,6 +20,9 @@ namespace Alveo.UserCode
         //When something should be drawn on the chart
         private Array<double> pivotHighs;
         private Array<double> pivotLows;
+
+        private Array<double> majorPivotHighs;
+        private Array<double> majorPivotLows;
         
         #endregion
         
@@ -28,7 +31,7 @@ namespace Alveo.UserCode
         {
             // Basic indicator initialization.
             //Define number of chart buffers etc.
-            indicator_buffers = 2;
+            indicator_buffers = 4;
             indicator_chart_window = true;
             
             //Eternal Variables
@@ -38,10 +41,14 @@ namespace Alveo.UserCode
 
             indicator_color1 = Colors.Orange;
             indicator_color2 = Colors.Orange;
+            indicator_color3 = Colors.Red;
+            indicator_color4 = Colors.Red;
             
             //Allocate memory for our global Array's
             pivotHighs = new Array<double>();
             pivotLows = new Array<double>();
+            majorPivotHighs = new Array<double>();
+            majorPivotLows = new Array<double>();
             
             copyright = "Apiary Fund, LLC";
             link = "https://apiaryfund.com";
@@ -76,6 +83,17 @@ namespace Alveo.UserCode
             SetIndexBuffer(1, pivotLows);
             SetIndexLabel(1, "Pivot Low");
 
+            SetIndexStyle(2, DRAW_ARROW, STYLE_DOT);
+            SetIndexArrow(2, pivotIcon);
+            SetIndexBuffer(2, majorPivotHighs);
+            SetIndexLabel(2, "Major Pivot High");
+
+            SetIndexStyle(3, DRAW_ARROW, STYLE_DOT);
+            SetIndexArrow(3, pivotIcon);
+            SetIndexBuffer(3, majorPivotLows);
+            SetIndexLabel(3, "Major Pivot Low");
+           
+
             return 0;
         }
         
@@ -100,6 +118,7 @@ namespace Alveo.UserCode
             int lastHighPos = 0;
             int lastLowPos = 0;
             bool lastWasHigh = false;
+            bool lastWasMajor = false;
             
             //Here we are starting from the end
             //of our chart (or array) and working towards the
@@ -119,7 +138,17 @@ namespace Alveo.UserCode
                     if (!lastWasHigh)
                     {
                         //assign the high point of the bar to our upper buffer
-                        pivotHighs[pos] = High[pos];
+                        if(isMajorPivot(pos, true))
+                        {
+                            majorPivotHighs[pos] = High[pos];
+                            lastWasMajor = true;
+                        }
+                        else
+                        {
+                            pivotHighs[pos] = High[pos];
+                            lastWasMajor = false;
+                        }
+                        
                         //remember the last high value
                         lastHigh = High[pos];
                         lastHighPos = pos;
@@ -134,8 +163,24 @@ namespace Alveo.UserCode
                         {
                             //if it is then we need to tell our buffer
                             //to remove the lower one and replace it
-                            pivotHighs[lastHighPos] = EMPTY_VALUE;
-                            pivotHighs[pos] = High[pos];
+                            if(lastWasMajor)
+                            {
+                                majorPivotHighs[lastHighPos] = EMPTY_VALUE;
+                            }
+                            else
+                            {
+                                pivotHighs[lastHighPos] = EMPTY_VALUE;
+                            }
+                            if(isMajorPivot(pos, true))
+                            {
+                                majorPivotHighs[pos] = High[pos];
+                                lastWasMajor = true;
+                            }
+                            else
+                            {
+                                pivotHighs[pos] = High[pos];
+                                lastWasMajor = false;
+                            }
                             lastHigh = High[pos];
                             lastHighPos = pos;
                             lastWasHigh = true;
@@ -148,7 +193,16 @@ namespace Alveo.UserCode
                 {
                     if (lastWasHigh)
                     {
-                        pivotLows[pos] = Low[pos];
+                        if(isMajorPivot(pos, false))
+                        {
+                            majorPivotLows[pos] = Low[pos];
+                            lastWasMajor = true;
+                        }
+                        else
+                        {
+                            pivotLows[pos] = Low[pos];
+                            lastWasMajor = false;
+                        }
                         lastLow = Low[pos];
                         lastLowPos = pos;
                         lastWasHigh = false;
@@ -157,8 +211,24 @@ namespace Alveo.UserCode
                     {
                         if (pvtLow < lastLow)
                         {
-                            pivotLows[lastLowPos] = EMPTY_VALUE;
-                            pivotLows[pos] = Low[pos];
+                            if(lastWasMajor)
+                            {
+                                majorPivotLows[lastLowPos] = EMPTY_VALUE;
+                            }
+                            else
+                            {
+                                pivotLows[lastLowPos] = EMPTY_VALUE;
+                            }
+                            if(isMajorPivot(pos, false))
+                            {
+                                majorPivotLows[pos] = Low[pos];
+                                lastWasMajor = true;
+                            }
+                            else
+                            {
+                                pivotLows[pos] = Low[pos];
+                                lastWasMajor = false;
+                            }
                             lastLow = Low[pos];
                             lastLowPos = pos;
                             lastWasHigh = false;
@@ -179,7 +249,75 @@ namespace Alveo.UserCode
             
             
             return 0;
-        }   
+        }
+
+        //+------------------------------------------------------------------+
+        //| Checks if a pivot is a major pivot,                              |
+        //| returns true if it is, false otherwise                           |    
+        //+------------------------------------------------------------------+
+        private bool isMajorPivot(int pos, bool high)
+        {
+            if (high)
+            {
+                //if high pivot, check if previous ten bars have lower highs
+                int endBar = pos + 11;
+                if (endBar > Bars)
+                {
+                    return false;
+                }
+                for (int i = pos; i < endBar; i++)
+                {
+                    if (High[i] > High[pos])
+                    {
+                        return false;
+                    }
+                }
+                //Check if next ten bars have lower highs 
+                endBar = pos - 10;
+                if (endBar < 0)
+                {
+                    return false;
+                }
+                for (int i = pos; i > endBar; i--)
+                {
+                    if (High[i] > High[pos])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            else
+            {
+                //if low pivot, check if previous ten bars have higher lows
+                int endBar = pos + 11;
+                if(endBar > Bars)
+                {
+                    return false;
+                }
+                for(int i = pos; i < endBar; i++)
+                {
+                    if(Low[i] < Low[pos])
+                    {
+                        return false;
+                    }
+                }
+                //Check if next ten bars have lower highs
+                endBar = pos - 11;
+                if(endBar < 0)
+                {
+                    return false;
+                }
+                for(int i = pos; i > endBar; i--)
+                {
+                    if(Low[i] < Low[pos])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
         
         
         //+------------------------------------------------------------------+
