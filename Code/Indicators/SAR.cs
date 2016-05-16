@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Windows.Media;
 using Alveo.Interfaces.UserCode;
@@ -23,7 +23,7 @@ namespace Alveo.UserCode
         public SAR()
         {
             indicator_buffers = 1;
-            indicator_chart_window = false;
+            indicator_chart_window = true;
             indicator_color1 = Colors.Red;
 
             Step = 0.02;
@@ -44,6 +44,8 @@ namespace Alveo.UserCode
 
         protected override int Init()
         {
+            SetIndexStyle(0, DRAW_ARROW);
+            SetIndexArrow(0, 159);
             SetIndexLabel(0, string.Format("SAR({0},{1})", Step, Maximum));
             IndicatorShortName(string.Format("SAR({0},{1})", Step, Maximum));
             SetIndexBuffer(0, _vals);
