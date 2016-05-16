@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Windows.Media;
 using Alveo.Interfaces.UserCode;
@@ -73,12 +73,12 @@ namespace Alveo.UserCode
         {
             //----
             SetIndexStyle(0, DRAW_LINE);
-            SetIndexBuffer(0, _TenkanSen);
+            SetIndexBuffer(0, _TenkanSen, false);
             SetIndexDrawBegin(0, TenkanSen - 1);
             SetIndexLabel(0, string.Format("Tenkan Sen({0})", TenkanSen));
             //----
             SetIndexStyle(1, DRAW_LINE);
-            SetIndexBuffer(1, _KijunSen);
+            SetIndexBuffer(1, _KijunSen, false);
             SetIndexDrawBegin(1, KijunSen - 1);
             SetIndexLabel(1, string.Format("Kijun Sen({0})", KijunSen));
             //----
@@ -86,26 +86,26 @@ namespace Alveo.UserCode
             if (a_begin < TenkanSen)
                 a_begin = TenkanSen;
             SetIndexStyle(2, DRAW_HISTOGRAM, STYLE_DOT);
-            SetIndexBuffer(2, _SenkouSpanA);
+            SetIndexBuffer(2, _SenkouSpanA, true);
             SetIndexDrawBegin(2, KijunSen + a_begin - 1);
             SetIndexShift(2, KijunSen);
             SetIndexStyle(5, DRAW_LINE, STYLE_DOT);
-            SetIndexBuffer(5, _SenkouSpanA2);
+            SetIndexBuffer(5, _SenkouSpanA2, true);
             SetIndexDrawBegin(5, KijunSen + a_begin - 1);
             SetIndexShift(5, KijunSen);
             //----
             SetIndexStyle(3, DRAW_HISTOGRAM, STYLE_DOT);
-            SetIndexBuffer(3, _SenkouSpanB);
+            SetIndexBuffer(3, _SenkouSpanB, true);
             SetIndexDrawBegin(3, KijunSen + SenkouSpanB - 1);
             SetIndexShift(3, KijunSen);
             SetIndexStyle(6, DRAW_LINE, STYLE_DOT);
-            SetIndexBuffer(6, _SenkouSpanB2);
+            SetIndexBuffer(6, _SenkouSpanB2, true);
             SetIndexDrawBegin(6, KijunSen + SenkouSpanB - 1);
             SetIndexShift(6, KijunSen);
             SetIndexLabel(3, string.Format("Senkou Span B({0})", SenkouSpanB));
             //----
             SetIndexStyle(4, DRAW_LINE);
-            SetIndexBuffer(4, _ChinkouSpan);
+            SetIndexBuffer(4, _ChinkouSpan, false);
             SetIndexShift(4, -KijunSen);
 
             IndicatorShortName(string.Format("Ichimoku({0},{1},{2})", TenkanSen, KijunSen, SenkouSpanB));
@@ -129,8 +129,8 @@ namespace Alveo.UserCode
             {
                 for (i = 1; i < TenkanSen; i++) _TenkanSen[Bars - i] = 0;
                 for (i = 1; i < KijunSen; i++) _KijunSen[Bars - i] = 0;
-                for (i = 1; i < a_begin; i++) { _SenkouSpanA[Bars - i] = 0; _SenkouSpanA2[Bars - i] = 0; }
-                for (i = 1; i < SenkouSpanB; i++) { _SenkouSpanB[Bars - i] = 0; _SenkouSpanB2[Bars - i] = 0; }
+                for (i = 1; i < a_begin; i++) { _SenkouSpanA[Bars - i] = 0; _SenkouSpanA2[Bars + Chart.NumForecastBars - i] = 0; }
+                for (i = 1; i < SenkouSpanB; i++) { _SenkouSpanB[Bars - i] = 0; _SenkouSpanB2[Bars + Chart.NumForecastBars - i] = 0; }
             }
 
             //---- Tenkan Sen
@@ -186,8 +186,8 @@ namespace Alveo.UserCode
             while (i >= 0)
             {
                 price = (_KijunSen[i] + _TenkanSen[i])/2;
-                _SenkouSpanA[i] = price;
-                _SenkouSpanA2[i] = price;
+                _SenkouSpanA[i + Chart.NumForecastBars] = price;
+                _SenkouSpanA2[i + Chart.NumForecastBars] = price;
                 i--;
             }
             //---- Senkou Span B
@@ -210,8 +210,8 @@ namespace Alveo.UserCode
                     k--;
                 }
                 price = (high + low)/2;
-                _SenkouSpanB[i] = price;
-                _SenkouSpanB2[i] = price;
+                _SenkouSpanB[i + Chart.NumForecastBars] = price;
+                _SenkouSpanB2[i + Chart.NumForecastBars] = price;
                 i--;
             }
             //---- Chinkou Span
