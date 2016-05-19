@@ -34,7 +34,7 @@ namespace Alveo.UserCode
         public int CountBars { get; set; }
 
         //+------------------------------------------------------------------+");
-        //| Custom indicator deinitialization function                       |");
+        //| Custom indicator initialization function                       |");
         //+------------------------------------------------------------------+");
         protected override int Init()
         {
@@ -44,7 +44,8 @@ namespace Alveo.UserCode
             SetIndexLabel(0, string.Format("DPO({0})", x_prd));
             if (CountBars >= Bars)
                 CountBars = Bars;
-            SetIndexDrawBegin(0, Bars - CountBars + x_prd + 1);
+            int startIndex = x_prd + (x_prd / 2);
+            SetIndexDrawBegin(0, Bars - CountBars + startIndex);
 
             return 0;
         }
@@ -56,6 +57,7 @@ namespace Alveo.UserCode
         {
             int i = 0;
             int pos = IndicatorCounted();
+            int t_prd = 0;
 
             if (Bars <= x_prd)
                 return 0;
@@ -67,9 +69,10 @@ namespace Alveo.UserCode
             }
 
             i = CountBars - x_prd - 1;
+            t_prd = x_prd / 2 + 1;
             while (i >= 0)
             {
-                dpoBuffer[i] = Close[i] - iMA(null, 0, x_prd, 0, MODE_SMA, PRICE_CLOSE, i);
+                dpoBuffer[i] = Close[i] - iMA(null, 0, x_prd, t_prd, MODE_SMA, PRICE_CLOSE, i);
                 i--;
             }
             return 0;
