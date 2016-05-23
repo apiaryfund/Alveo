@@ -84,7 +84,7 @@ namespace Alveo.UserCode
 
         public override bool IsSameParameters(params object[] values)
         {
-            if (values.Length != 5)
+            if (values.Length != 3)
                 return false;
             if ((values[0] != null && Symbol == null) || (values[0] == null && Symbol != null))
                 return false;
