@@ -77,5 +77,23 @@ namespace Alveo.UserCode
             }
             return 0;
         }
+
+        public override bool IsSameParameters(params object[] values)
+        {
+            if (values.Length != 4)
+                return false;
+            if ((values[0] != null && Symbol == null) || (values[0] == null && Symbol != null))
+                return false;
+            if (values[0] != null && (!(values[0] is string) || (string)values[0] != Symbol))
+                return false;
+            if (!(values[1] is int) || (int)values[1] != TimeFrame)
+                return false;
+            if (!(values[2] is int) || !x_prd.Equals((int)values[2]))
+                return false;
+            if (!(values[3] is int) || !CountBars.Equals((int)values[3]))
+                return false;
+
+            return true;
+        }
     }
 }
