@@ -5,6 +5,8 @@ using Alveo.Interfaces.UserCode;
 
 namespace Alveo.UserCode
 {
+    [Serializable]
+    [Description("Chaikin Volatility")]
     public class CHV : IndicatorBase
     {
         private readonly Array<double> chvBuffer;
