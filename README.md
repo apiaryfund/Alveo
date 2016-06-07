@@ -20,7 +20,7 @@ To request features & report bugs: https://apiaryfund.com/develop
 Look at an [example](https://github.com/marlais/Alveo/blob/master/Code/Indicators/Aroon.cs) indicator.
 <!--TODO: Explain basic indicator creation-->
 
-Look at the [Wiki](/wiki) for additional information on creating an indicator
+Look at the [Wiki](https://github.com/marlais/Alveo/wiki) for additional information on creating an indicator
 
 ## Using Custom Indicators
 <!--TODO: Add screenshots-->
