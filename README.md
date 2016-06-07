@@ -1,7 +1,9 @@
 ## Alveo
-Alveo is a real-time trading application for charting and performing technical analysis of the markets.
+Alveo is a real-time trading application for charting and performing technical analysis of the markets. 
+
 To download the platform: https://apiaryfund.com/software
-To request features & report bugs: https://apiaryfund.com/develop
+
+To request features & report bugs: https://apiaryfund.com/develop  
 
 ## Setting Up Visual Studio for Alveo Development
 <!--TODO:Insert screenshots-->
@@ -22,9 +24,9 @@ Look at the [Wiki](/wiki) for additional information on creating an indicator
 
 ## Using Custom Indicators
 <!--TODO: Add screenshots-->
-Custom indicators can be used in Alveo
-1.  Open Alveo
-2.  Select *Code*
-3.  Select *Editor*
-4.  Paste the code for the indicator into the editor and press the green *build* button
-5.  Select the indicator from the indicators list
+Custom indicators can be used in Alveo  
+1.  Open Alveo  
+2.  Select *Code*  
+3.  Select *Editor*  
+4.  Paste the code for the indicator into the editor and press the green *build* button  
+5.  Select the indicator from the indicators list  
