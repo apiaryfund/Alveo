@@ -2,6 +2,9 @@
 using System.ComponentModel;
 using System.Windows.Media;
 using Alveo.Interfaces.UserCode;
+using Alveo.UserCode;
+using Alveo.Common;
+using Alveo.Common.Classes;
 
 namespace Alveo.UserCode
 {
@@ -9,27 +12,36 @@ namespace Alveo.UserCode
     [Description("Chaikin Money Flow")]
     public class CMF : IndicatorBase
     {
+        #region Properties
+
         private readonly Array<double> cmfBuffer;
+
+        #endregion
+
 
         public CMF()
         {
-            indicator_chart_window = false;
+            // Basic indicator initialization. Don't use this constructor to calculate values
+
             indicator_buffers = 1;
-            indicator_level1 = 0;
-            indicator_levelstyle = STYLE_DOT;
+            periods = 20;
+
             indicator_levelcolor = Colors.Red;
             indicator_color1 = Colors.Red;
+
             cmfBuffer = new Array<double>();
-            periods = 20;
+
+            copyright = "Apiary Fund LLC";
+            link = "https://apiaryfund.com";
+            indicator_separate_window = true;
         }
 
-        [Category("Settings")]
-        [Description("Periods")]
-        [DisplayName("Periods")]
-        public int periods { get; set; }
-
+        //+------------------------------------------------------------------+");
+        //| Custom indicator initialization function                         |");
+        //+------------------------------------------------------------------+");
         protected override int Init()
         {
+            // ENTER YOUR CODE HERE
             SetIndexBuffer(0, cmfBuffer);
             SetIndexStyle(0, DRAW_LINE);
             SetIndexLabel(0, string.Format("CMF({0})", periods));
@@ -38,50 +50,89 @@ namespace Alveo.UserCode
             return 0;
         }
 
-        protected override int Start()
-        {
-            int shift = 0;
-            int limit = 0;
-            int pos = IndicatorCounted();
-            if (Bars <= periods)
-                return 0;
-            if (pos < 1)
-                for (int i = 1; i <= periods; i++)
-                    cmfBuffer[Bars - i] = 0;
-            if (pos > 0)
-                limit = Bars - pos;
-            if (pos == 0)
-                limit = Bars - periods - 1;
-            for (shift = limit; shift >= 0; shift--)
-            {
-                double sum = 0;
-                double volume = 0;
-                for(int i = 0; i < periods - 1; i++)
-                {
-                    volume += Volume[shift + i];
-                    if (High[shift + i] - Low[shift + i] > 0)
-                        sum += Volume[shift + i] * (Close[shift + i] - Open[shift + i]) / (High[shift + i] - Low[shift + i]);
-                }
-                cmfBuffer[shift] = sum / volume;
-            }
 
+        //+-------- EXTERNAL PARAMETERS HERE --------+
+        [Category("Settings")]
+        [DisplayName("Periods")]
+        public int periods { get; set; }
+
+
+        //+------------------------------------------------------------------+");
+        //| Custom indicator deinitialization function                       |");
+        //+------------------------------------------------------------------+");
+        protected override int Deinit()
+        {
+            // ENTER YOUR CODE HERE
             return 0;
         }
 
+        //+------------------------------------------------------------------+");
+        //| Custom indicator iteration function                              |");
+        //+------------------------------------------------------------------+");
+        protected override int Start()
+        {
+            int counted_bars = IndicatorCounted();
+            // ENTER YOUR CODE HERE
+            if (counted_bars <= periods)
+            {
+                return 0;
+            }
+            double moneyFlowMultiplier;
+            double[] moneyFlowVolume = new double[counted_bars];
+            double moneyFlowVolumeSum = 0;
+            double volumeSum = 0;
+            double cmf;
+            for (int i = counted_bars - 1; i >= 0; i--)
+            {
+                moneyFlowVolume[i] = (Close[i] == High[i] && Close[i] == Low[i] || High[i] == Low[i]) ? 0 : ((2 * Close[i] - Low[i] - High[i]) / (High[i] - Low[i])) * Volume[i];
+                moneyFlowVolumeSum = 0;
+                volumeSum = 0;
+                if (i <= (counted_bars - periods))
+                {
+                    for (int j = 0; j < periods; j++)
+                    {
+                        moneyFlowVolumeSum += moneyFlowVolume[i + j];
+                        volumeSum += Volume[i + j];
+                    }
+                    cmf = moneyFlowVolumeSum / volumeSum;
+                    cmfBuffer[i] = cmf;
+                }
+            }
+            return 0;
+        }
+
+        //+------------------------------------------------------------------+
+        //| AUTO GENERATED CODE. THIS METHODS USED FOR INDICATOR CACHING     |
+        //+------------------------------------------------------------------+
+        #region Auto Generated Code
+
+        [Description("Parameters order Symbol, TimeFrame")]
         public override bool IsSameParameters(params object[] values)
         {
-            if (values.Length != 3)
+            if (values.Length != 2)
                 return false;
-            if ((values[0] != null && Symbol == null) || (values[0] == null && Symbol != null))
+
+            if (!CompareString(Symbol, (string)values[0]))
                 return false;
-            if (values[0] != null && (!(values[0] is string) || (string)values[0] != Symbol))
-                return false;
-            if (!(values[1] is int) || (int)values[1] != TimeFrame)
-                return false;
-            if (!(values[2] is int) || (int)values[2] != periods)
+
+            if (TimeFrame != (int)values[1])
                 return false;
 
             return true;
         }
+
+        [Description("Parameters order Symbol, TimeFrame")]
+        public override void SetIndicatorParameters(params object[] values)
+        {
+            if (values.Length != 2)
+                throw new ArgumentException("Invalid parameters number");
+
+            Symbol = (string)values[0];
+            TimeFrame = (int)values[1];
+
+        }
+
+        #endregion
     }
 }
+
