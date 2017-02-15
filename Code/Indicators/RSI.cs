@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Windows.Media;
 using Alveo.Interfaces.UserCode;
@@ -98,18 +98,18 @@ namespace Alveo.UserCode
             if (pos > Bars - IndicatorPeriod - 1)
                 pos = Bars - IndicatorPeriod - 1;
 
-            decimal sumn = 0;
-            decimal sump = 0;
-            decimal rel;
-            decimal positive;
-            decimal negative;
+            double sumn = 0;
+            double sump = 0;
+            double rel;
+            double positive;
+            double negative;
 
             if (pos == Bars - IndicatorPeriod - 1)
             {
                 var k = Bars - 2;
                 while (k >= pos)
                 {
-                    rel = data[k].Close - data[k + 1].Close;
+                    rel = Close[k] - Close[k + 1];
                     if (rel > 0)
                         sump += rel;
                     else
@@ -119,13 +119,13 @@ namespace Alveo.UserCode
 
                 positive = sump/IndicatorPeriod;
                 negative = sumn/IndicatorPeriod;
-                _posBuf[pos] = (double)positive;
-                _negBuf[pos] = (double)negative;
+                _posBuf[pos] = positive;
+                _negBuf[pos] = negative;
 
-                if (negative.Equals(0.0))
+                if (negative == 0.0)
                     _vals[pos] = 0.0;
                 else
-                    _vals[pos] = (double)(100 - 100/(1 + positive/negative));
+                    _vals[pos] = (100 - 100/(1 + positive/negative));
 
                 pos--;
             }
@@ -133,20 +133,20 @@ namespace Alveo.UserCode
             {
                 sumn = 0;
                 sump = 0;
-                rel = data[pos].Close - data[pos + 1].Close;
+                rel = Close[pos] - Close[pos + 1];
                 if (rel > 0)
                     sump = rel;
                 else
                     sumn = -rel;
-                positive = ((decimal)_posBuf[pos + 1]*(IndicatorPeriod - 1) + sump)/IndicatorPeriod;
-                negative = ((decimal)_negBuf[pos + 1]*(IndicatorPeriod - 1) + sumn)/IndicatorPeriod;
-                _posBuf[pos] = (double)positive;
-                _negBuf[pos] = (double)negative;
+                positive = (_posBuf[pos + 1]*(IndicatorPeriod - 1) + sump)/IndicatorPeriod;
+                negative = (_negBuf[pos + 1]*(IndicatorPeriod - 1) + sumn)/IndicatorPeriod;
+                _posBuf[pos] = positive;
+                _negBuf[pos] = negative;
 
-                if (negative.Equals(0.0))
+                if (negative == 0.0)
                     _vals[pos] = 0.0;
                 else
-                    _vals[pos] = (double)(100 - 100/(1 + positive/negative));
+                    _vals[pos] = (100 - 100/(1 + positive/negative));
 
                 pos--;
             }
