@@ -2,6 +2,9 @@
 using System.ComponentModel;
 using System.Windows.Media;
 using Alveo.Interfaces.UserCode;
+using Alveo.UserCode;
+using Alveo.Common;
+using Alveo.Common.Classes;
 
 namespace Alveo.UserCode
 {
@@ -10,18 +13,26 @@ namespace Alveo.UserCode
     public class MFI : IndicatorBase
     {
         private readonly Array<double> _vals;
+        private readonly Array<double> _level1;
+        private readonly Array<double> _level2;
 
         public MFI()
         {
-            indicator_buffers = 1;
+            indicator_buffers = 3;
             indicator_chart_window = false;
-            indicator_color1 = Colors.Red;
+            indicator_color1 = Colors.Blue;
+            indicator_color2 = Colors.Green;
+            indicator_color3 = Colors.Red;
 
             IndicatorPeriod = 10;
+            Level1 = 80;
+            Level2 = 20;
             SetIndexLabel(0, string.Format("MFI({0})", IndicatorPeriod));
             IndicatorShortName(string.Format("MFI({0})", IndicatorPeriod));
 
             _vals = new Array<double>();
+            _level1 = new Array<double>();
+            _level2 = new Array<double>();
         }
 
         [Description("Period of the MFI Indicator")]
@@ -29,11 +40,28 @@ namespace Alveo.UserCode
         [DisplayName("Period")]
         public int IndicatorPeriod { get; set; }
 
+        [Description("Overbought level")]
+        [Category("Settings")]
+        [DisplayName("Level 1")]
+        public double Level1 { get; set; }
+
+
+        [Description("Oversold level")]
+        [Category("Settings")]
+        [DisplayName("Level 2")]
+        public double Level2 { get; set; }
+
+
         protected override int Init()
         {
             SetIndexLabel(0, string.Format("MFI({0})", IndicatorPeriod));
             IndicatorShortName(string.Format("MFI({0})", IndicatorPeriod));
             SetIndexBuffer(0, _vals);
+
+            SetIndexBuffer(1, _level1);
+            SetIndexLabel(1, "Level 1");
+            SetIndexBuffer(2, _level2);
+            SetIndexLabel(2, "Level 2");
 
             return 0;
         }
@@ -49,35 +77,37 @@ namespace Alveo.UserCode
             if (data.Count == 0)
                 return 0;
 
-            decimal dPositiveMF;
-            decimal dNegativeMF;
-            decimal dCurrentTP;
-            decimal dPreviousTP;
+            double dPositiveMF;
+            double dNegativeMF;
+            double dCurrentTP;
+            double dPreviousTP;
             int j;
 
-            while (pos >= 0)
+            while (pos > 0)
             {
                 dPositiveMF = 0;
                 dNegativeMF = 0;
-                dCurrentTP = (data[pos].High + data[pos].Low + data[pos].Close)/3;
+                dCurrentTP = (High[pos] + Low[pos] + Close[pos]) / 3;
                 for (j = 0; j < IndicatorPeriod; j++)
                 {
-                    dPreviousTP = (data[pos + j + 1].High + data[pos + j + 1].Low + data[pos + j + 1].Close)/3;
+                    dPreviousTP = (High[pos + j + 1] + Low[pos + j + 1] + Close[pos + j + 1]) / 3;
                     if (dCurrentTP > dPreviousTP)
-                        dPositiveMF += data[pos + j].Volume*dCurrentTP;
+                        dPositiveMF += data[pos + j].Volume * dCurrentTP;
                     else
                     {
                         if (dCurrentTP < dPreviousTP)
-                            dNegativeMF += data[pos + j].Volume*dCurrentTP;
+                            dNegativeMF += Volume[pos + j] * dCurrentTP;
                     }
                     dCurrentTP = dPreviousTP;
                 }
                 //----
-                if (!dNegativeMF.Equals(0.0))
-                    _vals[pos] = 100 - 100/(double)(1 + dPositiveMF/dNegativeMF);
+                if (dNegativeMF != 0)
+                    _vals[pos] = 100 - 100 / (1 + dPositiveMF / dNegativeMF);
                 else
                     _vals[pos] = 100;
                 //----
+                _level1[pos] = Level1;
+                _level2[pos] = Level2;
                 pos--;
             }
 
@@ -101,3 +131,4 @@ namespace Alveo.UserCode
         }
     }
 }
+
