@@ -42,7 +42,7 @@ namespace Alveo.UserCode
 
         protected override int Init()
         {
-            SetIndexBuffer(0, upper, true);
+            SetIndexBuffer(0, upper);
             SetIndexStyle(0, DRAW_LINE);
             SetIndexLabel(0, "Upper");
 
